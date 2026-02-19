@@ -1,0 +1,66 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      1887,         58]
+NotebookOptionsPosition[      1307,         40]
+NotebookOutlinePosition[      1716,         56]
+CellTagsIndexPosition[      1673,         53]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"\[IndentingNewLine]", 
+  RowBox[{"ClearAll", "[", "\"\<Global`*\>\"", "]"}]}]], "Input",
+ CellChangeTimes->{{3.951827128853449*^9, 3.9518271297499027`*^9}},
+ CellLabel->"In[49]:=",ExpressionUUID->"2a7328fd-b680-4e4f-bbb7-f8d0bf8a9aa7"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"SetDirectory", "[", 
+  RowBox[{"NotebookDirectory", "[", "]"}], "]"}]], "Input",
+ CellLabel->"In[50]:=",ExpressionUUID->"c16ab557-1ecd-7943-96f0-7e1e3483825d"],
+
+Cell[BoxData["\<\"C:\\\\Users\\\\argha\\\\OneDrive - Coventry \
+University\\\\[0] My NIA-EPSCRC Bid\\\\Bid Draft\\\\Ian\\\\data\"\>"], \
+"Output",
+ CellChangeTimes->{3.951827147870428*^9},
+ CellLabel->"Out[50]=",ExpressionUUID->"e9a969aa-c007-b146-be32-4928fd45cdee"]
+}, Open  ]]
+},
+WindowSize->{1269, 720},
+WindowMargins->{{344.5, Automatic}, {-43.5, Automatic}},
+FrontEndVersion->"14.2 for Microsoft Windows (64-bit) (December 26, 2024)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"d668b2ca-a8b4-d243-a7cd-0a645197a040"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 259, 4, 47, "Input",ExpressionUUID->"2a7328fd-b680-4e4f-bbb7-f8d0bf8a9aa7"],
+Cell[CellGroupData[{
+Cell[838, 28, 183, 3, 28, "Input",ExpressionUUID->"c16ab557-1ecd-7943-96f0-7e1e3483825d"],
+Cell[1024, 33, 267, 4, 32, "Output",ExpressionUUID->"e9a969aa-c007-b146-be32-4928fd45cdee"]
+}, Open  ]]
+}
+]
+*)
+

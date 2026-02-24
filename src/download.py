@@ -25,7 +25,7 @@ def main(urls):
 if __name__ == "__main__":
     urls = [
         f"https://mis.nyiso.com/public/csv/realtimelineoutages/{year}{month:02d}01RTLineOutages_csv.zip"
-        for year in range(2008, 2026)
+        for year in range(2008, 2027)
         for month in range(1, 13)
     ]
     main(urls)

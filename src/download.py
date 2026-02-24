@@ -4,7 +4,7 @@ from pathlib import Path
 import requests
 from tqdm import tqdm
 
-base_path = Path("downloads")
+base_path = Path("raw-zip")
 base_path.mkdir(exist_ok=True)
 
 

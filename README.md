@@ -1,2 +1,12 @@
 # bpa-nyiso-data
 Clean nyiso and bpa datasets.
+
+Order of scripts:
+
+1- processing_raw_actual_data.ipynb: Creates a csv containing processed outages.
+
+2- processing_raw_scheduled_data.ipynb: Compress scheduled outage plans.
+
+3- compare_processed_outages.ipynb: Compares extracted records by our algorithm with that of extracted by Carrington/Dobson. Also removes unconnected components of the graph.
+
+4- set_outage_type.ipynb: Adding "OutageType" to actual outages by comparing its records on the scheduled outages.

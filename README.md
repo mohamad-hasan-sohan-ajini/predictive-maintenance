@@ -1,17 +1,21 @@
 # bpa-nyiso-data
 Clean nyiso and bpa datasets.
 
-Order of scripts:
+Ordered scrips/notebooks to clean dataset:
 
-1- `processing_raw_actual_data.ipynb`: Creates a csv containing processed outages.
+0- [`download.py`](download.py): Download raw zip files from `nyios.com`.
 
-2- `processing_raw_scheduled_data.ipynb`: Compress scheduled outage plans.
+1- [`processing_raw_actual_data.ipynb`](processing_raw_actual_data.ipynb): Creates a csv containing processed outages.
 
-3- `compare_processed_outages.ipynb`: Compares extracted records by our algorithm with that of extracted by Carrington/Dobson. Also removes unconnected components of the graph.
+2- [`processing_raw_scheduled_data.ipynb`](processing_raw_scheduled_data.ipynb): Compress scheduled outage plans.
 
-4- `set_outage_type.ipynb`: Adding "OutageType" to actual outages by comparing its records on the scheduled outages.
+3- [`compare_processed_outages.ipynb`](compare_processed_outages.ipynb): Compares extracted records by our algorithm with that of extracted by Carrington/Dobson. Also removes unconnected components of the graph.
+
+4- [`set_outage_type.ipynb`](set_outage_type.ipynb): Adding "OutageType" to actual outages by comparing its records on the scheduled outages.
 
 
 
 ## other scripts and files:
-- `data.ipynb`: EDA on Carrington/Dobson data.
+
+- [`data.ipynb`](data.ipynb): EDA on Carrington/Dobson data.
+- [`our_data_eda.ipynb`](our_data_eda.ipynb): EDA on our cleaned data.

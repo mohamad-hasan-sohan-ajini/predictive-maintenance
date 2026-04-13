@@ -5,9 +5,9 @@ Ordered scrips/notebooks to clean dataset:
 
 0- [`download.py`](download.py): Download raw zip files from `nyios.com`.
 
-1- [`processing_raw_actual_data.ipynb`](processing_raw_actual_data.ipynb): Creates a csv containing processed outages.
+1- [`processing_actual_logs.ipynb`](processing_actual_logs.ipynb): Creates a csv containing processed outages.
 
-2- [`processing_raw_scheduled_data.ipynb`](processing_raw_scheduled_data.ipynb): Compress scheduled outage plans.
+2- [`processing_scheduled_logs.ipynb`](processing_scheduled_logs.ipynb): Compress scheduled outage plans.
 
 3- [`compare_processed_outages.ipynb`](compare_processed_outages.ipynb): Compares extracted records by our algorithm with that of extracted by Carrington/Dobson. Also removes unconnected components of the graph.
 

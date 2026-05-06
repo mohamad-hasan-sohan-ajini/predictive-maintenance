@@ -26,12 +26,12 @@ from sklearn.tree import (
 )
 
 
-def get_X_y(df, target_col, drop_columns=):
+def get_X_y(df, target_col, drop_columns):
     """
     Prepare features and target.
     Drops all label columns and fold_id from X.
     """
-    X = df.drop(columns=[c for c in DROP_COLUMNS if c in df.columns])
+    X = df.drop(columns=[c for c in drop_columns if c in df.columns])
     y = df[target_col]
 
     # Basic safety: keep only numeric columns
@@ -157,7 +157,14 @@ def save_builtin_feature_importance(model, feature_names, out_path):
     return importance
 
 
-def save_permutation_importance(model, X_test, y_test, task_type, out_path):
+def save_permutation_importance(
+    model,
+    X_test,
+    y_test,
+    task_type,
+    out_path,
+    random_state,
+):
     """
     Permutation importance is usually more reliable than built-in tree importance.
     """
@@ -171,7 +178,7 @@ def save_permutation_importance(model, X_test, y_test, task_type, out_path):
         X_test,
         y_test,
         n_repeats=20,
-        random_state=RANDOM_STATE,
+        random_state=random_state,
         scoring=scoring,
         n_jobs=-1,
     )
@@ -237,7 +244,14 @@ def save_shap_importance(model, X_sample, out_path_csv, out_path_png, task_type)
     return shap_importance
 
 
-def train_models_for_target(df, dataset_name, target_col, task_type):
+def train_models_for_target(
+    df,
+    dataset_name,
+    target_col,
+    task_type,
+    output_dir,
+    random_state,
+):
     print(f"\n{'=' * 80}")
     print(f"Dataset: {dataset_name}")
     print(f"Target: {target_col}")
@@ -259,7 +273,7 @@ def train_models_for_target(df, dataset_name, target_col, task_type):
     X_test = X_test.loc[test_mask]
     y_test = y_test.loc[test_mask]
 
-    target_out_dir = OUTPUT_DIR / dataset_name / target_col
+    target_out_dir = output_dir / dataset_name / target_col
     target_out_dir.mkdir(parents=True, exist_ok=True)
 
     feature_names = X_train.columns.tolist()
@@ -270,14 +284,14 @@ def train_models_for_target(df, dataset_name, target_col, task_type):
                 max_depth=6,
                 min_samples_leaf=10,
                 class_weight="balanced",
-                random_state=RANDOM_STATE,
+                random_state=random_state,
             ),
             "rf": RandomForestClassifier(
                 n_estimators=300,
                 max_depth=None,
                 min_samples_leaf=5,
                 class_weight="balanced_subsample",
-                random_state=RANDOM_STATE,
+                random_state=random_state,
                 n_jobs=-1,
             ),
         }
@@ -287,13 +301,13 @@ def train_models_for_target(df, dataset_name, target_col, task_type):
             "tree": DecisionTreeRegressor(
                 max_depth=6,
                 min_samples_leaf=10,
-                random_state=RANDOM_STATE,
+                random_state=random_state,
             ),
             "rf": RandomForestRegressor(
-                n_estimators=300,
+                n_estimators=21,
                 max_depth=None,
                 min_samples_leaf=5,
-                random_state=RANDOM_STATE,
+                random_state=random_state,
                 n_jobs=-1,
             ),
         }
@@ -396,7 +410,7 @@ def train_models_for_target(df, dataset_name, target_col, task_type):
         shap_sample_size = min(1000, len(X_test))
         X_shap = X_test.sample(
             shap_sample_size,
-            random_state=RANDOM_STATE,
+            random_state=random_state,
         )
 
         shap_df = save_shap_importance(

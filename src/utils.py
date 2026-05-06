@@ -1,60 +1,32 @@
-# pip install pandas numpy scikit-learn matplotlib shap joblib
-
 from pathlib import Path
+
+import joblib
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import joblib
 import shap
-
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor, plot_tree, export_text
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
-    precision_recall_fscore_support,
     classification_report,
     confusion_matrix,
     mean_absolute_error,
     mean_squared_error,
-    r2_score,
     median_absolute_error,
+    precision_recall_fscore_support,
+    r2_score,
 )
-from sklearn.inspection import permutation_importance
+from sklearn.tree import (
+    DecisionTreeClassifier,
+    DecisionTreeRegressor,
+    export_text,
+    plot_tree,
+)
 
 
-# -----------------------------
-# Configuration
-# -----------------------------
-
-DATA_DIR = Path(".")  # change this if your CSVs are elsewhere
-CSV_PATTERN = "dataset_winsize*.csv"
-
-OUTPUT_DIR = Path("model_outputs")
-OUTPUT_DIR.mkdir(exist_ok=True)
-
-RANDOM_STATE = 42
-
-TARGETS = {
-    "label_time_to_event_seconds": "regression",
-    "label_from_zone": "classification",
-    "label_to_zone": "classification",
-}
-
-DROP_COLUMNS = [
-    "fold_id",
-    "label_is_auto",  # old / not important
-    "label_time_to_event_seconds",
-    "label_from_zone",
-    "label_to_zone",
-]
-
-
-# -----------------------------
-# Utility functions
-# -----------------------------
-
-def get_X_y(df, target_col):
+def get_X_y(df, target_col, drop_columns=):
     """
     Prepare features and target.
     Drops all label columns and fold_id from X.
@@ -92,11 +64,19 @@ def classification_metrics(y_true, y_pred):
     bal_acc = balanced_accuracy_score(y_true, y_pred)
 
     precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(
-        y_true, y_pred, average="macro", zero_division=0
+        y_true,
+        y_pred,
+        average="macro",
+        zero_division=0,
     )
 
-    precision_weighted, recall_weighted, f1_weighted, _ = precision_recall_fscore_support(
-        y_true, y_pred, average="weighted", zero_division=0
+    precision_weighted, recall_weighted, f1_weighted, _ = (
+        precision_recall_fscore_support(
+            y_true,
+            y_pred,
+            average="weighted",
+            zero_division=0,
+        )
     )
 
     return {
@@ -166,10 +146,12 @@ def save_builtin_feature_importance(model, feature_names, out_path):
     if not hasattr(model, "feature_importances_"):
         return None
 
-    importance = pd.DataFrame({
-        "feature": feature_names,
-        "importance": model.feature_importances_,
-    }).sort_values("importance", ascending=False)
+    importance = pd.DataFrame(
+        {
+            "feature": feature_names,
+            "importance": model.feature_importances_,
+        }
+    ).sort_values("importance", ascending=False)
 
     importance.to_csv(out_path, index=False)
     return importance
@@ -194,11 +176,13 @@ def save_permutation_importance(model, X_test, y_test, task_type, out_path):
         n_jobs=-1,
     )
 
-    importance = pd.DataFrame({
-        "feature": X_test.columns,
-        "importance_mean": result.importances_mean,
-        "importance_std": result.importances_std,
-    }).sort_values("importance_mean", ascending=False)
+    importance = pd.DataFrame(
+        {
+            "feature": X_test.columns,
+            "importance_mean": result.importances_mean,
+            "importance_std": result.importances_std,
+        }
+    ).sort_values("importance_mean", ascending=False)
 
     importance.to_csv(out_path, index=False)
     return importance
@@ -228,10 +212,12 @@ def save_shap_importance(model, X_sample, out_path_csv, out_path_png, task_type)
         else:
             mean_abs_shap = np.abs(shap_values).mean(axis=0)
 
-    shap_importance = pd.DataFrame({
-        "feature": X_sample.columns,
-        "mean_abs_shap": mean_abs_shap,
-    }).sort_values("mean_abs_shap", ascending=False)
+    shap_importance = pd.DataFrame(
+        {
+            "feature": X_sample.columns,
+            "mean_abs_shap": mean_abs_shap,
+        }
+    ).sort_values("mean_abs_shap", ascending=False)
 
     shap_importance.to_csv(out_path_csv, index=False)
 
@@ -336,11 +322,15 @@ def train_models_for_target(df, dataset_name, target_col, task_type):
                 zero_division=0,
             )
 
-            with open(target_out_dir / f"{model_name}_classification_report.txt", "w") as f:
+            with open(
+                target_out_dir / f"{model_name}_classification_report.txt", "w"
+            ) as f:
                 f.write(report)
 
             cm = pd.DataFrame(confusion_matrix(y_test, y_pred))
-            cm.to_csv(target_out_dir / f"{model_name}_confusion_matrix.csv", index=False)
+            cm.to_csv(
+                target_out_dir / f"{model_name}_confusion_matrix.csv", index=False
+            )
 
             print(report)
 
@@ -435,7 +425,9 @@ all_results = []
 csv_files = sorted(DATA_DIR.glob(CSV_PATTERN))
 
 if len(csv_files) == 0:
-    raise FileNotFoundError(f"No files found matching {CSV_PATTERN} in {DATA_DIR.resolve()}")
+    raise FileNotFoundError(
+        f"No files found matching {CSV_PATTERN} in {DATA_DIR.resolve()}"
+    )
 
 for csv_path in csv_files:
     dataset_name = csv_path.stem

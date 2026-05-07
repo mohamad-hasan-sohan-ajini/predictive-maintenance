@@ -202,6 +202,11 @@ def save_shap_importance(model, X_sample, out_path_csv, out_path_png, task_type)
     For multiclass classifiers, SHAP returns one explanation per class.
     Here we average absolute SHAP values over samples and classes.
     """
+    if shap is None:
+        raise ModuleNotFoundError(
+            "The 'shap' package is required to compute SHAP feature importance."
+        )
+
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_sample)
 
@@ -251,6 +256,7 @@ def train_models_for_target(
     task_type,
     output_dir,
     random_state,
+    drop_columns,
 ):
     print(f"\n{'=' * 80}")
     print(f"Dataset: {dataset_name}")
@@ -260,8 +266,8 @@ def train_models_for_target(
 
     train_df, test_df = split_by_fold_id(df)
 
-    X_train, y_train = get_X_y(train_df, target_col)
-    X_test, y_test = get_X_y(test_df, target_col)
+    X_train, y_train = get_X_y(train_df, target_col, drop_columns)
+    X_test, y_test = get_X_y(test_df, target_col, drop_columns)
 
     # Remove rows with missing target
     train_mask = y_train.notna()
@@ -304,7 +310,7 @@ def train_models_for_target(
                 random_state=random_state,
             ),
             "rf": RandomForestRegressor(
-                n_estimators=21,
+                n_estimators=300,
                 max_depth=None,
                 min_samples_leaf=5,
                 random_state=random_state,
@@ -400,6 +406,7 @@ def train_models_for_target(
             y_test,
             task_type,
             target_out_dir / f"{model_name}_permutation_importance.csv",
+            random_state,
         )
 
         print(f"\nTop permutation importances for {model_name}:")

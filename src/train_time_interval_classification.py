@@ -10,7 +10,6 @@ from sklearn.metrics import (
     confusion_matrix,
 )
 
-
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "output"
 OUTPUT_DIR = BASE_DIR / "model_outputs" / "time_interval_rf"
@@ -191,9 +190,13 @@ def train_dataset(csv_path):
     test_df = df[df[FOLD_COLUMN] == HELD_OUT_FOLD_ID].copy()
 
     if len(train_df) == 0:
-        raise ValueError(f"{csv_path} has no training rows outside fold {HELD_OUT_FOLD_ID}")
+        raise ValueError(
+            f"{csv_path} has no training rows outside fold {HELD_OUT_FOLD_ID}"
+        )
     if len(test_df) == 0:
-        raise ValueError(f"{csv_path} has no held-out rows with fold {HELD_OUT_FOLD_ID}")
+        raise ValueError(
+            f"{csv_path} has no held-out rows with fold {HELD_OUT_FOLD_ID}"
+        )
 
     X_train = prepare_features(train_df)
     X_test = prepare_features(test_df)

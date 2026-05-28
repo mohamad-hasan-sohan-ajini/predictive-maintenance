@@ -34,6 +34,7 @@ DROP_COLUMNS = [
     "label_from_zone",
     "label_to_zone",
 ]
+NUM_ESTIMATORS = 100  # Reduced from 300 for faster training during development
 
 
 def quantize_time_to_event(seconds):
@@ -107,7 +108,7 @@ def class_counts(series):
 
 def make_model():
     return RandomForestClassifier(
-        n_estimators=300,
+        n_estimators=NUM_ESTIMATORS,
         max_depth=None,
         min_samples_leaf=5,
         class_weight="balanced_subsample",

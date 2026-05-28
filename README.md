@@ -13,6 +13,9 @@ Ordered scrips/notebooks to clean dataset:
 
 4- [`set_outage_type.ipynb`](set_outage_type.ipynb): Adding "OutageType" to actual outages by comparing its records on the scheduled outages.
 
+5- [`create_dataset.ipynb`](create_dataset.ipynb): Create dataset using preprocessed csv files. You should change the `EVENT_WINDOW_HOURS` and rerun the script for different window sizes.
+
+6- [`auto_outage_distribution.ipynb`](auto_outage_distribution.ipynb): Check auto outage distribution in time and reject null hypothesis (if auto outages are independent of planned outages, their distribution over time is uniform).
 
 
 ## other scripts and files:

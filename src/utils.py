@@ -25,6 +25,8 @@ from sklearn.tree import (
     plot_tree,
 )
 
+NUM_ESTIMATORS = 100
+
 
 def get_X_y(df, target_col, drop_columns):
     """
@@ -91,16 +93,131 @@ def classification_metrics(y_true, y_pred):
     }
 
 
-def regression_metrics(y_true, y_pred):
-    mse = mean_squared_error(y_true, y_pred)
+def _validate_prediction_costs(early_prediction_cost, late_prediction_cost):
+    if early_prediction_cost <= 0:
+        raise ValueError("early_prediction_cost must be positive.")
+    if late_prediction_cost <= 0:
+        raise ValueError("late_prediction_cost must be positive.")
+
+
+def _coerce_sample_weight(sample_weight, index, name):
+    if sample_weight is None:
+        return None
+
+    if np.isscalar(sample_weight):
+        weights = pd.Series(float(sample_weight), index=index)
+    elif isinstance(sample_weight, pd.Series):
+        weights = sample_weight.reindex(index).astype(float)
+    else:
+        weights = pd.Series(sample_weight, index=index, dtype=float)
+
+    if len(weights) != len(index):
+        raise ValueError(f"{name} must have length {len(index)}, got {len(weights)}.")
+    if weights.isna().any():
+        raise ValueError(f"{name} contains missing values.")
+    if not np.isfinite(weights.to_numpy()).all():
+        raise ValueError(f"{name} contains non-finite values.")
+    if (weights < 0).any():
+        raise ValueError(f"{name} must be non-negative.")
+    if weights.sum() <= 0:
+        raise ValueError(f"{name} must contain at least one positive value.")
+
+    return weights
+
+
+def time_to_event_training_weights(
+    y_true,
+    early_prediction_cost=1.0,
+    late_prediction_cost=100.0,
+):
+    """
+    Create regression sample weights for time-to-event targets.
+
+    Smaller true times are closer to the event, so this gives them larger
+    training weight. This is the sklearn-compatible approximation of an
+    asymmetric late-prediction cost.
+    """
+    _validate_prediction_costs(early_prediction_cost, late_prediction_cost)
+
+    y = pd.Series(y_true, dtype=float)
+    if len(y) == 0:
+        return y
+
+    min_y = y.min()
+    max_y = y.max()
+    span = max_y - min_y
+
+    if span == 0:
+        return pd.Series(early_prediction_cost, index=y.index, dtype=float)
+
+    urgency = (max_y - y) / span
+    weights = (
+        early_prediction_cost + (late_prediction_cost - early_prediction_cost) * urgency
+    )
+
+    return weights.astype(float)
+
+
+def asymmetric_late_prediction_weights(
+    y_true,
+    y_pred,
+    early_prediction_cost=1.0,
+    late_prediction_cost=100.0,
+):
+    """
+    Weight metric errors by whether the prediction is late.
+
+    For a time-to-event target, y_pred > y_true means the model says the event
+    is farther away than it really is, so the prediction is late.
+    """
+    _validate_prediction_costs(early_prediction_cost, late_prediction_cost)
+
+    y_true = pd.Series(y_true, dtype=float)
+    y_pred = pd.Series(y_pred, index=y_true.index, dtype=float)
+
+    return pd.Series(
+        np.where(y_pred > y_true, late_prediction_cost, early_prediction_cost),
+        index=y_true.index,
+        dtype=float,
+    )
+
+
+def regression_metrics(y_true, y_pred, sample_weight=None, prefix=""):
+    mse = mean_squared_error(y_true, y_pred, sample_weight=sample_weight)
     rmse = np.sqrt(mse)
 
     return {
-        "mae": mean_absolute_error(y_true, y_pred),
-        "median_absolute_error": median_absolute_error(y_true, y_pred),
-        "mse": mse,
-        "rmse": rmse,
-        "r2": r2_score(y_true, y_pred),
+        f"{prefix}mae": mean_absolute_error(
+            y_true,
+            y_pred,
+            sample_weight=sample_weight,
+        ),
+        f"{prefix}median_absolute_error": median_absolute_error(
+            y_true,
+            y_pred,
+            sample_weight=sample_weight,
+        ),
+        f"{prefix}mse": mse,
+        f"{prefix}rmse": rmse,
+        f"{prefix}r2": r2_score(y_true, y_pred, sample_weight=sample_weight),
+    }
+
+
+def regression_cost_metrics(y_true, y_pred, cost_weight, prefix="cost_"):
+    y_true = pd.Series(y_true, dtype=float)
+    y_pred = pd.Series(y_pred, index=y_true.index, dtype=float)
+    cost_weight = _coerce_sample_weight(cost_weight, y_true.index, "cost weights")
+
+    error = y_pred - y_true
+    abs_cost = cost_weight * error.abs()
+    squared_cost = cost_weight * error.pow(2)
+    mse = squared_cost.mean()
+
+    return {
+        f"{prefix}mae": abs_cost.mean(),
+        f"{prefix}mse": mse,
+        f"{prefix}rmse": np.sqrt(mse),
+        f"{prefix}mean_weight": cost_weight.mean(),
     }
 
 
@@ -257,11 +374,19 @@ def train_models_for_target(
     output_dir,
     random_state,
     drop_columns,
+    sample_weight_fn=None,
+    metric_weight_fn=None,
+    weighting_name=None,
 ):
+    weighting_label = weighting_name or (
+        "weighted" if sample_weight_fn is not None else "unweighted"
+    )
+
     print(f"\n{'=' * 80}")
     print(f"Dataset: {dataset_name}")
     print(f"Target: {target_col}")
     print(f"Task: {task_type}")
+    print(f"Weighting: {weighting_label}")
     print(f"{'=' * 80}")
 
     train_df, test_df = split_by_fold_id(df)
@@ -280,9 +405,29 @@ def train_models_for_target(
     y_test = y_test.loc[test_mask]
 
     target_out_dir = output_dir / dataset_name / target_col
+    if weighting_name is not None:
+        target_out_dir = target_out_dir / weighting_label
     target_out_dir.mkdir(parents=True, exist_ok=True)
 
     feature_names = X_train.columns.tolist()
+
+    train_sample_weight = None
+    if sample_weight_fn is not None:
+        if not callable(sample_weight_fn):
+            raise TypeError("sample_weight_fn must be callable.")
+
+        train_sample_weight = _coerce_sample_weight(
+            sample_weight_fn(y_train),
+            y_train.index,
+            "training sample weights",
+        )
+
+        print(
+            "Training sample weights: "
+            f"min={train_sample_weight.min():.3f}, "
+            f"mean={train_sample_weight.mean():.3f}, "
+            f"max={train_sample_weight.max():.3f}"
+        )
 
     if task_type == "classification":
         models = {
@@ -293,7 +438,7 @@ def train_models_for_target(
                 random_state=random_state,
             ),
             "rf": RandomForestClassifier(
-                n_estimators=300,
+                n_estimators=NUM_ESTIMATORS,
                 max_depth=None,
                 min_samples_leaf=5,
                 class_weight="balanced_subsample",
@@ -310,7 +455,7 @@ def train_models_for_target(
                 random_state=random_state,
             ),
             "rf": RandomForestRegressor(
-                n_estimators=300,
+                n_estimators=NUM_ESTIMATORS,
                 max_depth=None,
                 min_samples_leaf=5,
                 random_state=random_state,
@@ -326,7 +471,11 @@ def train_models_for_target(
     for model_name, model in models.items():
         print(f"\nTraining {model_name}...")
 
-        model.fit(X_train, y_train)
+        fit_kwargs = {}
+        if train_sample_weight is not None:
+            fit_kwargs["sample_weight"] = train_sample_weight
+
+        model.fit(X_train, y_train, **fit_kwargs)
         y_pred = model.predict(X_test)
 
         # Save model
@@ -356,12 +505,46 @@ def train_models_for_target(
 
         else:
             metrics = regression_metrics(y_test, y_pred)
+            if metric_weight_fn is not None:
+                if not callable(metric_weight_fn):
+                    raise TypeError("metric_weight_fn must be callable.")
+
+                metric_sample_weight = _coerce_sample_weight(
+                    metric_weight_fn(y_test, y_pred),
+                    y_test.index,
+                    "metric sample weights",
+                )
+                metrics.update(
+                    regression_metrics(
+                        y_test,
+                        y_pred,
+                        sample_weight=metric_sample_weight,
+                        prefix="weighted_",
+                    )
+                )
+                metrics.update(
+                    regression_cost_metrics(
+                        y_test,
+                        y_pred,
+                        metric_sample_weight,
+                    )
+                )
+                late_prediction_mask = pd.Series(y_pred, index=y_test.index) > y_test
+                metrics["late_prediction_rate"] = late_prediction_mask.mean()
+                metrics["late_prediction_count"] = int(late_prediction_mask.sum())
+
             print(metrics)
 
         metrics["dataset"] = dataset_name
         metrics["target"] = target_col
         metrics["task"] = task_type
         metrics["model"] = model_name
+        metrics["weighting"] = weighting_label
+
+        if train_sample_weight is not None:
+            metrics["train_weight_min"] = train_sample_weight.min()
+            metrics["train_weight_mean"] = train_sample_weight.mean()
+            metrics["train_weight_max"] = train_sample_weight.max()
 
         all_metrics.append(metrics)
 

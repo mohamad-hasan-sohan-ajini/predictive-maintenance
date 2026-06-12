@@ -131,7 +131,7 @@ def time_to_event_training_weights(
     late_prediction_cost=100.0,
 ):
     """
-    Create regression sample weights for time-to-event targets.
+    Create regression sample weights for time-to-event (delta t) targets.
 
     Smaller true times are closer to the event, so this gives them larger
     training weight. This is the sklearn-compatible approximation of an

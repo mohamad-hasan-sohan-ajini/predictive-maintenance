@@ -17,6 +17,7 @@ Ordered scrips/notebooks to clean dataset:
 
 6- [`auto_outage_distribution.ipynb`](auto_outage_distribution.ipynb): Check auto outage distribution in time and reject null hypothesis (if auto outages are independent of planned outages, their distribution over time is uniform).
 
+7- [`predictive_maintenance.ipynb`](src/predictive_maintenance.ipynb): Train and compare decision-tree and random-forest models across multiple event-window sizes to predict the time and endpoint zones of the next automatic outage. Evaluate asymmetric early/late prediction costs, time-interval classification, and zone-distance errors, and analyze zone-model feature importance with SHAP.
 
 ## other scripts and files:
 

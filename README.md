@@ -19,6 +19,10 @@ Ordered scrips/notebooks to clean dataset:
 
 7- [`predictive_maintenance.ipynb`](src/predictive_maintenance.ipynb): Train and compare decision-tree and random-forest models across multiple event-window sizes to predict the time and endpoint zones of the next automatic outage. Evaluate asymmetric early/late prediction costs, time-interval classification, and zone-distance errors, and analyze zone-model feature importance with SHAP.
 
+8- [`predictive_maintenance_xgboost_when.ipynb`](src/predictive_maintenance_xgboost_when.ipynb): Select an event-window size and tune an XGBoost regressor to predict the time until the next automatic outage. Compare standard and late-penalized models using timing-error metrics and distributions.
+
+9- [`predictive_maintenance_xgboost_where.ipynb`](src/predictive_maintenance_xgboost_where.ipynb): Train Transformer models to predict the unordered pair of endpoint zones for the next automatic outage. Compare cross-entropy and graph-distance-aware losses, with average and self-attentive pooling, using exact-pair accuracy and graph-distance error.
+
 ## other scripts and files:
 
 - [`data.ipynb`](src/data.ipynb): EDA on Carrington/Dobson data.

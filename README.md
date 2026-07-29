@@ -21,7 +21,7 @@ Ordered scrips/notebooks to clean dataset:
 
 8- [`predictive_maintenance_xgboost_when.ipynb`](src/predictive_maintenance_xgboost_when.ipynb): Select an event-window size and tune an XGBoost regressor to predict the time until the next automatic outage. Compare standard and late-penalized models using timing-error metrics and distributions.
 
-9- [`predictive_maintenance_xgboost_where.ipynb`](src/predictive_maintenance_xgboost_where.ipynb): Train Transformer models to predict the unordered pair of endpoint zones for the next automatic outage. Compare cross-entropy and graph-distance-aware losses, with average and self-attentive pooling, using exact-pair accuracy and graph-distance error.
+9- [`predictive_maintenance_transformer_where.ipynb`](src/predictive_maintenance_transformer_where.ipynb): Train Transformer models to predict the unordered pair of endpoint zones for the next automatic outage. Compare cross-entropy and graph-distance-aware losses, with average and self-attentive pooling, using exact-pair accuracy and graph-distance error.
 
 ## other scripts and files:
 

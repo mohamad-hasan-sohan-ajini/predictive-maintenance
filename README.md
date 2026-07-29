@@ -23,6 +23,8 @@ Ordered scrips/notebooks to clean dataset:
 
 9- [`predictive_maintenance_transformer_where.ipynb`](src/predictive_maintenance_transformer_where.ipynb): Train Transformer models to predict the unordered pair of endpoint zones for the next automatic outage. Compare cross-entropy and graph-distance-aware losses, with average and self-attentive pooling, using exact-pair accuracy and graph-distance error.
 
+10- [`interpretability.ipynb`](src/interpretability.ipynb): Interpret the trained WHERE Transformer's attention across time blocks and the WHEN XGBoost model using highest-gain tree visualizations and global and local SHAP analyses.
+
 ## other scripts and files:
 
 - [`data.ipynb`](src/data.ipynb): EDA on Carrington/Dobson data.
